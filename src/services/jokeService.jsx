@@ -1,18 +1,19 @@
 export const getAllJokes = () => {
-    return fetch("http://localhost:8088/jokes").then((res) => res.json())
+   return fetch("http://localhost:8088/jokes").then((res) => res.json())
 }
 
-export const addNewJoke = () => {
+
+
+export const addNewJoke = async (newJokePost) => {
+ 
     let postOptions = {}
     postOptions = {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(transientState)
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(newJokePost)
     }
-    fetch(" http://localhost:9099/jokes", postOptions)
-    const inputChangeEvent = new CustomEvent("new joke created")
-    document.dispatchEvent(inputChangeEvent)
-
-}
+    await fetch(" http://localhost:8088/jokes", postOptions)
+    
+  }
