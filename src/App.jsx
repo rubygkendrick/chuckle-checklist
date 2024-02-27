@@ -3,6 +3,9 @@ import "./App.css"
 import { getAllJokes } from "./services/jokeService.jsx"
 import { useState, useEffect } from "react"
 import { addNewJoke } from "./services/jokeService.jsx"
+import { editJoke } from "./services/jokeService.jsx"
+import { deleteJoke } from "./services/jokeService.jsx"
+
 
 export const App = () => {
   const [allJokes, setAllJokes] = useState([]) // [stateVariable, setterFunction]
@@ -13,38 +16,67 @@ export const App = () => {
   const fetchAndResetJokes = () => {
     getAllJokes().then(jokesArray => {
       setAllJokes(jokesArray)
-    })   
-   const untoldJokes = allJokes.filter(joke => joke.told === false)
-   setUntoldJokes(untoldJokes)
-   const toldJokes = allJokes.filter(joke => joke.told === true)
-   setToldJokes(toldJokes)
-    
+    })
   }
 
   useEffect(() => {
-    getAllJokes().then(jokesArray => {
-      setAllJokes(jokesArray)
-      console.log("JOKES ARE set!")
-    })
-
+    fetchAndResetJokes()
   }, [])
 
   useEffect(() => {
-    fetchAndResetJokes()
+    const untoldJokes = allJokes.filter(joke => joke.told === false)
+    setUntoldJokes(untoldJokes)
+    const toldJokes = allJokes.filter(joke => joke.told === true)
+    setToldJokes(toldJokes)
   }, [allJokes])
 
 
   const handleAddJokeClick = async () => {
-    const transientJokes = {
+    const newJokeToPost = {
       text: newJoke,
       told: false
     }
-    addNewJoke(transientJokes)
+    await addNewJoke(newJokeToPost)
     setNewJoke("")
     fetchAndResetJokes()
-
   }
 
+  //functions to create  edited joke objects
+  const handleUntoldEditJokeClick = async (event) => {
+    const jokeId = event.target.dataset.joke
+    let told = false
+    if (event.target.dataset.told === "false") {
+      told = true
+    }
+    const editedJoke = {
+      id: jokeId,
+      text: event.target.dataset.text,
+      told: told
+    }
+    await editJoke(jokeId, editedJoke)
+    fetchAndResetJokes()
+  }
+
+  const handleToldEditJokeClick = async (event) => {
+    const jokeId = event.target.dataset.joke
+    let told = true
+    if (event.target.dataset.told === "true") {
+      told = false
+    }
+    const editedJoke = {
+      id: jokeId,
+      text: event.target.dataset.text,
+      told: told
+    }
+    await editJoke(jokeId, editedJoke)
+    fetchAndResetJokes()
+  }
+
+  const handleDeleteJokeClick = async (event) => {
+    const jokeId = event.target.dataset.joke
+    await deleteJoke(jokeId)
+    fetchAndResetJokes()
+  }
 
 
   return <div className="app-container">
@@ -68,7 +100,16 @@ export const App = () => {
       <div className="joke-list-container">
         <h2>Untold <span className="untold-count">{untoldJokes.length}</span></h2>
         {untoldJokes.map((joke) => {
-          return (<li className="joke-list-item" key={joke.id}>{joke.text}<button><i className="fa-regular fa-face-smile" /></button></li>)
+
+          return (<li className="joke-list-item" key={joke.id}>{joke.text}
+            <button className="joke-list-action-delete"
+              data-joke={joke.id} onClick={handleDeleteJokeClick}>delete
+            </button>
+            <button className="joke-list-action-toggle"
+              data-joke={joke.id} data-text={joke.text} data-told={joke.told}
+              onClick={handleUntoldEditJokeClick} >told
+            </button>
+          </li>)
         }
         )}
 
@@ -78,8 +119,16 @@ export const App = () => {
         {toldJokes.map((joke) => {
 
           return (
-           
-          <li className="joke-list-item" key={joke.id}>{joke.text}<button><i className="fa-regular fa-face-meh" /></button></li>
+
+            <li className="joke-list-item" key={joke.id}>{joke.text}
+              <button className="joke-list-action-delete"
+                data-joke={joke.id} onClick={handleDeleteJokeClick}>delete
+              </button>
+              <button className="joke-list-action-toggle"
+                data-joke={joke.id} data-text={joke.text} data-told={joke.told}
+                onClick={handleToldEditJokeClick} >untold
+              </button>
+            </li>
           )
         }
         )}
